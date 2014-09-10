@@ -1,0 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-09-11 01:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js:498
+msgid "Previous month"
+msgstr ""
+
+#: extension.js:503
+msgid "Previous day"
+msgstr ""
+
+#: extension.js:522
+msgid "Next day"
+msgstr ""
+
+#: extension.js:527
+msgid "Next month"
+msgstr ""
+
+#: extension.js:584
+msgid "year"
+msgstr ""
+
+#: extension.js:588
+msgid "Julian day"
+msgstr ""
+
+#: extension.js:589
+msgid "ISO-8601 date"
+msgstr ""
+
+#: extension.js:590
+msgid "Offset"
+msgstr ""

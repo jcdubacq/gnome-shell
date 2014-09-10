@@ -9,6 +9,9 @@ const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 const Mainloop = imports.mainloop;
 
+const Gettext = imports.gettext;
+Gettext.textdomain('FRC');
+const _ = Gettext.gettext;
 
 let button, timeout, textbox, text, dtext, textb, dtextb, label, dlabel, date, longdate, longdateb;
 
@@ -488,12 +491,12 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.menu.actor.set_width(350);
         this._offsetitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this._morebackButton = new St.Button({ style_class: 'calendar-change-month-more-back',
-                                           accessible_name: ("Previous month"),
+                                           accessible_name: _("Previous month"),
                                            can_focus: true });
         this._offsetitem.actor.add(this._morebackButton);
         this._morebackButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-30,true); }));
         this._backButton = new St.Button({ style_class: 'calendar-change-month-back',
-                                           accessible_name: ("Previous day"),
+                                           accessible_name: _("Previous day"),
                                            can_focus: true });
         this._offsetitem.actor.add(this._backButton);
         this._backButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-1,true); }));
@@ -512,12 +515,12 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this._offsetButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(0,false); }));
         this._offsetitem.actor.add(this._offsetButton);
         this._forwardButton = new St.Button({ style_class: 'calendar-change-month-forward',
-                                              accessible_name: ("Next day"),
+                                              accessible_name: _("Next day"),
                                               can_focus: true });
         this._offsetitem.actor.add(this._forwardButton);
         this._forwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(1,true); }));
         this._moreforwardButton = new St.Button({ style_class: 'calendar-change-month-more-forward',
-                                              accessible_name: ("Next month"),
+                                              accessible_name: _("Next month"),
                                               can_focus: true });
         this._offsetitem.actor.add(this._moreforwardButton);
         this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
@@ -565,7 +568,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         } else {
             jrrr = jrr;
         }
-        offgd = astro.jd_to_gregorian(jj);
+        let offgd = astro.jd_to_gregorian(jj);
         let daymonth=this._daymonth(jrr);
         if (jrr[1]!=13) {
             longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
@@ -574,13 +577,21 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
             longdate = _sansculottidesNames[jrr[3]-1]+', an '+_romanNumeral(jrr[0]);
             longdateb = daymonth+' jour des '+_monthNames[jrr[1]-1]
         }
-        date = this._daymonth(jrrr)+' '+_monthNames[jrrr[1]-1]+', an '+jrrr[0];
+        date = this._daymonth(jrrr)+' '+_monthNames[jrrr[1]-1]+', '+_("year")+' '+jrrr[0];
         this.toptext = date;
         this.longdatetext = longdate;
         this.longdatebtext = longdateb;
-        this.juliantext = '<b>'+'Julian day'+'</b> '+(j-.5);
-        this.isotext = '<b>'+'ISO-8601 date'+'</b> '+offgd[0]+'-'+(offgd[1]<10?'0':'')+offgd[1]+'-'+(offgd[2]<10?'0':'')+offgd[2];
-        this.offsettext = '<b>'+'Offset'+'</b> '+(off != 0 ? (off) : '0');
+        this.juliantext = '<b>'+_("Julian day")+'</b> '+(jj-.5);
+        this.isotext = '<b>'+_("ISO-8601 date")+'</b> '+offgd[0]+'-';
+        if (offgd[1]<10) {
+            this.isotext = this.isotext + '0';
+        }
+        this.isotext = this.isotext + offgd[1]+'-';
+        if (offgd[2]<10) {
+            this.isotext = this.isotext + '0';
+        }
+        this.isotext = this.isotext + offgd[2];
+        this.offsettext = '<b>'+_("Offset")+'</b> '+(off != 0 ? (off) : '0');
     },
     _daymonth: function(jrr) {
         let daymonth = (jrr[2]-1)*10+jrr[3];
@@ -627,7 +638,10 @@ function _romanNumeral(n) {
     return '';
 }
 
-function init() {
+function init(metadata) {
+    let localeDir = metadata.dir.get_child('locale');
+    global.log("localeDir: " + localeDir.get_path());
+    Gettext.bindtextdomain('FRC', localeDir.get_path());
 }
 
 let _indicator;
