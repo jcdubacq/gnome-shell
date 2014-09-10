@@ -586,12 +586,10 @@ function enable() {
     if ('apps-menu' in Main.panel.statusArea)
 	pos = 2;
     Main.panel.addToStatusArea('frenchrepublicancalendar-menu', _indicator, pos, 'center');
-    global.log('Went through enable');
 }
 
 function disable() {
     _indicator.destroy();
-    global.log('Went through disable');
 }
 
 
