@@ -1,7 +1,14 @@
+const Clutter = imports.gi.Clutter;
+const Lang = imports.lang;
 const St = imports.gi.St;
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
+const Slider = imports.ui.slider;
+const Panel = imports.ui.panel;
 const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 const Mainloop = imports.mainloop;
+
 
 let button, timeout, textbox, text, dtext, textb, dtextb, label, dlabel, date, longdate, longdateb;
 
@@ -443,58 +450,106 @@ Astro.prototype = {
 
 let astro = new Astro();
 
-function _hideHello() {
-    if (text != null) {
-        Main.uiGroup.remove_actor(textbox);
-        text.destroy();
-        textb.destroy();
-        textbox.destroy();
-        dtext = null;
-        dtextb = null;
-        text = null;
-        textb = null;
-        textbox = null;
-    }
-}
+// Define class
 
-function _refreshText() {
-    if (!textbox) {
-        textbox = new St.BoxLayout({ vertical : true, style_class: 'helloworld-label' });
-        dtext = longdate;
-        text = new St.Label({ text: dtext });
-        text.clutter_text.set_use_markup(true);
-        textbox.add_child(text);
-        dtextb = longdateb;
-        textb = new St.Label({ text: dtextb });
-        textb.clutter_text.set_use_markup(true);
-        textbox.add_child(textb);
-        Main.uiGroup.add_actor(textbox);
-    } else if (dtext != longdate) {
-        dtext = longdate;
-        text.set_markup(dtext);
-        dtextb = longdateb;
-        textb.set_markup(dtextb);
-    }
-    return true;
-}
 
-function _showHello(a) {
-    _setDate();
-    _refreshText();
+const FrenchRepublicanCalendarTopMenu = new Lang.Class({
+    Name: 'FrenchRepublicanCalendar.TopMenu',
+    Extends: PanelMenu.Button,
+    _init: function() {
+        this.offsetval = 0;
+        this.offsetsign = 1;
+        this.timeout = null;
+        this.toptext="French Republican Calendar";
+        this.parent(0.5, "FRC");
+        let hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
+        this.toplabel = new St.Label({ text: this.toptext,
+                                    y_expand: true,
+                                    y_align: Clutter.ActorAlign.CENTER });
+        this.toplabel.clutter_text.set_use_markup(true);
+        hbox.add_child(this.toplabel);
+        hbox.add_child(new St.Label({ text: '\u25BE',
+                                      y_expand: true,
+                                      y_align: Clutter.ActorAlign.CENTER }));
+        this.actor.add_actor(hbox);
+        let upd=['longdate','longdateb','julian','offset'];
+        for (let i=0;i<upd.length;i++) {
+            this[upd[i]] = new PopupMenu.PopupMenuItem(upd[i],{activate: false});
+            this[upd[i]+'label'] = this[upd[i]].label;
+            this[upd[i]].label.clutter_text.set_use_markup(true);
+        }
+        this.menu.addMenuItem(this.longdate); 
+        this.menu.addMenuItem(this.longdateb); 
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
+        this.menu.addMenuItem(this.julian); 
+        this.menu.addMenuItem(this.offset);
 
-    textbox.opacity = 255;
-
-    let monitor = Main.layoutManager.primaryMonitor;
-
-    textbox.set_position(Math.floor(monitor.width / 2 - text.width / 2),
-                      Math.floor(monitor.height / 2 - text.height / 2));
-
-    Tweener.addTween(textbox,
-                     { opacity: 0,
-                       time: 3,
-                       transition: 'easeOutQuad',
-                       onComplete: _hideHello });
-}
+        this._slideritem = new PopupMenu.PopupBaseMenuItem({ activate: false });
+        this.menu.addMenuItem(this._slideritem);
+        this._slider = new Slider.Slider(0);
+        this._slider.connect('value-changed', Lang.bind(this, this.updateOffset));
+        this._slider.actor.accessible_name = ("Offset value");
+        this._slideritem.actor.add(this._slider.actor, { expand: true });
+        this.timeout = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
+            this.update();
+            return true;
+        }));
+        this.update();
+    },
+    updateOffset: function(slider, value) {
+        let days = Math.round(value * 400);
+        this.offsetval = days;
+        this.update();
+    },
+    update: function() {
+        this._setDate();
+        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'offset' ];
+        for (let i=0 ; i < upd.length; i++) {
+            if (this[upd[i]+'label']) {
+                this[upd[i]+'label'].clutter_text.set_markup(this[upd[i]+'text']);
+            }
+        }
+        return true;
+    },
+    _setDate: function() {
+        var jrr, daymonth, hour, min, sec, decade, date, longdate, longdateb;
+        let off = this.offsetsign*this.offsetval;
+        let time = new Date();
+        //  Update Julian day
+        let j = astro.gregorian_to_jd(time.getFullYear(), time.getMonth() + 1, time.getDate());
+        let jj = j + off;
+        jrr = astro.jd_to_french_revolutionary(jj);
+        daymonth=(jrr[2]-1)*10+jrr[3];
+        if (jrr[1]!=13) {
+            if (daymonth == 1) {
+                daymonth = daymonth + '<sup>er</sup>';
+            }
+            date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
+            longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
+            longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
+        } else {
+            if (daymonth == 1) {
+                daymonth = daymonth + '<sup>er</sup>';
+            } else {
+                daymonth = daymonth + '<sup>e</sup>';
+            }
+            longdate = _sansculottidesNames[jrr[3]-1]+', an '+_romanNumeral(jrr[0]);
+            longdateb = daymonth+' jour des '+_monthNames[jrr[1]-1]
+        }
+        date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
+        this.toptext = date;
+        this.longdatetext = longdate;
+        this.longdatebtext = longdateb;
+        this.juliantext = '<b>'+'Julian day'+'</b> '+(j-.5);
+        this.offsettext = '<b>'+'Offset'+'</b> '+(off != 0 ? (off) : '0');
+    },
+    destroy: function() {
+        if (this.timeout) {
+            Mainloop.source_remove(this.timeout);
+        }
+        this.parent();
+    },
+});
 
 let _monthNames = ['Vendémiaire','Brumaire','Frimaire','Nivôse','Pluviôse','Ventôse','Germinal','Floréal','Prairial','Messidor','Thermidor','Fructidor','Sans-culottides'];
 let _sansculottidesNames = ['jour de la vertu','jour du génie','jour du travail','jour de l´opinion','jour des récompenses','jour de la révolution'];
@@ -505,7 +560,7 @@ function _romanNumeral(n) {
     var val, s = '', limit = 3999, i = 0;
     var v = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
     var r = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
-    if (n< 1 || n> limit) return '';
+    if (n < 1 || n > limit) return '';
     while(i<13){
         val= v[i];
         while(n>= val){
@@ -517,78 +572,24 @@ function _romanNumeral(n) {
     }
     return '';
 }
-function _setDate() {
-    var jrr, daymonth, hour, min, sec, decade;
-    let time = new Date();
-
-    //  Update Julian day
-
-    let j = astro.gregorian_to_jd(time.getFullYear(), time.getMonth() + 1, time.getDate());
-    let s=time.getSeconds();
-    if (s<10) s='0'+s;
-    jrr = astro.jd_to_french_revolutionary(j);
-    daymonth=(jrr[2]-1)*10+jrr[3];
-    if (jrr[1]!=13) {
-        if (daymonth == 1) {
-            daymonth = daymonth + '<sup>er</sup>';
-        }
-        date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
-        longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
-        longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
-    } else {
-        if (daymonth == 1) {
-            daymonth = daymonth + '<sup>er</sup>';
-        } else {
-            daymonth = daymonth + '<sup>e</sup>';
-        }
-        longdate = _sansculottidesNames[jrr[3]-1]+', an '+_romanNumeral(jrr[0]);
-        longdateb = daymonth+' jour des '+_monthNames[jrr[1]-1]
-    }
-    date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
-}
-
-function _refreshLabel() {
-    _setDate();
-    if (dlabel != date) {
-        dlabel=date;
-        label.set_text(dlabel);
-        label.clutter_text.set_use_markup(true);
-        if (textbox) 
-            _refreshText();
-    }
-    return true;
-}
 
 function init() {
-    text = null;
-    button = new St.Bin({ style_class: 'panel-button',
-                          reactive: true,
-                          can_focus: true,
-                          x_fill: true,
-                          y_fill: false,
-                          track_hover: true });
-    dlabel = '---';
-    label = new St.Label({text: dlabel});
-    button.set_child(label);
-    button.connect('button-press-event', _showHello);
-    global.log("init");
 }
 
+let _indicator;
+
 function enable() {
-    dtext = null;
-    text = null;
-    let time = new Date();
-    Main.panel._centerBox.insert_child_at_index(button, 1);
-    timeout = Mainloop.timeout_add_seconds(1, _refreshLabel);
+    _indicator = new FrenchRepublicanCalendarTopMenu;
+    let pos = 1;
+    if ('apps-menu' in Main.panel.statusArea)
+	pos = 2;
+    Main.panel.addToStatusArea('frenchrepublicancalendar-menu', _indicator, pos, 'center');
+    global.log('Went through enable');
 }
 
 function disable() {
-    if (timeout) {
-        Mainloop.source_remove(timeout);
-    }
-    _hideHello();
-    timeout = null;
-    Main.panel._rightBox.remove_child(button);
+    _indicator.destroy();
+    global.log('Went through disable');
 }
 
 
