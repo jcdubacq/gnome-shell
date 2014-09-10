@@ -459,6 +459,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     _init: function() {
         this.offsetval = 0;
         this.offsetsign = 1;
+        this.offsettext = '';
         this.timeout = null;
         this.toptext="French Republican Calendar";
         this.parent(0.5, "FRC");
@@ -467,35 +468,73 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
                                       y_expand: true,
                                       y_align: Clutter.ActorAlign.CENTER }));
         this.toplabel = new St.Label({ text: this.toptext,
-                                    y_expand: true,
-                                    y_align: Clutter.ActorAlign.CENTER });
+                                       y_expand: true,
+                                       y_align: Clutter.ActorAlign.CENTER });
         this.toplabel.clutter_text.set_use_markup(true);
-        this.toplabel.clutter_text.set_width(200);
+        // this.toplabel.clutter_text.set_width(200);
         hbox.add_child(this.toplabel);
         this.actor.add_actor(hbox);
-        let upd=['longdate','longdateb','julian','offset'];
+        let upd=['longdate','longdateb','julian','iso'];
         for (let i=0;i<upd.length;i++) {
             this[upd[i]] = new PopupMenu.PopupMenuItem(upd[i],{activate: false});
             this[upd[i]+'label'] = this[upd[i]].label;
             this[upd[i]].label.clutter_text.set_use_markup(true);
-        }
-        this.menu.addMenuItem(this.longdate); 
+        }        
+        this.menu.addMenuItem(this.longdate);
         this.menu.addMenuItem(this.longdateb); 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
-        this.menu.addMenuItem(this.offset);
-        this.menu.actor.set_width(300);
+        this.menu.addMenuItem(this.iso); 
+        this.menu.actor.set_width(350);
+        this._offsetitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
+        this._morebackButton = new St.Button({ style_class: 'calendar-change-month-more-back',
+                                           accessible_name: ("Previous month"),
+                                           can_focus: true });
+        this._offsetitem.actor.add(this._morebackButton);
+        this._morebackButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-30,true); }));
+        this._backButton = new St.Button({ style_class: 'calendar-change-month-back',
+                                           accessible_name: ("Previous day"),
+                                           can_focus: true });
+        this._offsetitem.actor.add(this._backButton);
+        this._backButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-1,true); }));
+        this._offsetButton = new St.Button({ style_class: 'calendar-offset',
+                                             y_expand: true,
+                                             x_expand: true,
+                                             x_align: Clutter.ActorAlign.START,
+                                             y_align: Clutter.ActorAlign.CENTER,
+                                             can_focus: true });
+        this.offsetlabel = new St.Label({text: 'test',
+                                         y_expand: true,
+                                         x_expand: true,
+                                         x_align: Clutter.ActorAlign.START,
+                                         y_align: Clutter.ActorAlign.CENTER });
+        this._offsetButton.add_actor(this.offsetlabel);
+        this._offsetButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(0,false); }));
+        this._offsetitem.actor.add(this._offsetButton);
+        this._forwardButton = new St.Button({ style_class: 'calendar-change-month-forward',
+                                              accessible_name: ("Next day"),
+                                              can_focus: true });
+        this._offsetitem.actor.add(this._forwardButton);
+        this._forwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(1,true); }));
+        this._moreforwardButton = new St.Button({ style_class: 'calendar-change-month-more-forward',
+                                              accessible_name: ("Next month"),
+                                              can_focus: true });
+        this._offsetitem.actor.add(this._moreforwardButton);
+        this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
+        this.menu.addMenuItem(this._offsetitem);
 
-        this._slideritem = new PopupMenu.PopupBaseMenuItem({ activate: false });
-        this.menu.addMenuItem(this._slideritem);
-        this._slider = new Slider.Slider(0);
-        this._slider.connect('value-changed', Lang.bind(this, this.updateOffset));
-        this._slider.actor.accessible_name = ("Offset value");
-        this._slideritem.actor.add(this._slider.actor, { expand: true });
         this.timeout = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
             this.update();
             return true;
         }));
+        this.update();
+    },
+    changeOffset: function(value,relative) {
+        if (relative) {
+            this.offsetval += value ;
+        } else {
+            this.offsetval = value;
+        }
         this.update();
     },
     updateOffset: function(slider, value) {
@@ -505,7 +544,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     },
     update: function() {
         this._setDate();
-        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'offset' ];
+        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'offset' ];
         for (let i=0 ; i < upd.length; i++) {
             if (this[upd[i]+'label']) {
                 this[upd[i]+'label'].clutter_text.set_markup(this[upd[i]+'text']);
@@ -514,36 +553,49 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         return true;
     },
     _setDate: function() {
-        var jrr, daymonth, hour, min, sec, decade, date, longdate, longdateb;
+        var jrr, jrrr, hour, min, sec, decade, date, longdate, longdateb;
         let off = this.offsetsign*this.offsetval;
         let time = new Date();
         //  Update Julian day
         let j = astro.gregorian_to_jd(time.getFullYear(), time.getMonth() + 1, time.getDate());
         let jj = j + off;
         jrr = astro.jd_to_french_revolutionary(jj);
-        daymonth=(jrr[2]-1)*10+jrr[3];
+        if (jj != 0) {
+            jrrr = astro.jd_to_french_revolutionary(j);
+        } else {
+            jrrr = jrr;
+        }
+        offgd = astro.jd_to_gregorian(jj);
+        let daymonth=this._daymonth(jrr);
+        if (jrr[1]!=13) {
+            longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
+            longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
+        } else {
+            longdate = _sansculottidesNames[jrr[3]-1]+', an '+_romanNumeral(jrr[0]);
+            longdateb = daymonth+' jour des '+_monthNames[jrr[1]-1]
+        }
+        date = this._daymonth(jrrr)+' '+_monthNames[jrrr[1]-1]+', an '+jrrr[0];
+        this.toptext = date;
+        this.longdatetext = longdate;
+        this.longdatebtext = longdateb;
+        this.juliantext = '<b>'+'Julian day'+'</b> '+(j-.5);
+        this.isotext = '<b>'+'ISO-8601 date'+'</b> '+offgd[0]+'-'+(offgd[1]<10?'0':'')+offgd[1]+'-'+(offgd[2]<10?'0':'')+offgd[2];
+        this.offsettext = '<b>'+'Offset'+'</b> '+(off != 0 ? (off) : '0');
+    },
+    _daymonth: function(jrr) {
+        let daymonth = (jrr[2]-1)*10+jrr[3];
         if (jrr[1]!=13) {
             if (daymonth == 1) {
                 daymonth = daymonth + '<sup>er</sup>';
             }
-            date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
-            longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
-            longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
         } else {
             if (daymonth == 1) {
                 daymonth = daymonth + '<sup>er</sup>';
             } else {
                 daymonth = daymonth + '<sup>e</sup>';
             }
-            longdate = _sansculottidesNames[jrr[3]-1]+', an '+_romanNumeral(jrr[0]);
-            longdateb = daymonth+' jour des '+_monthNames[jrr[1]-1]
         }
-        date = daymonth+' '+_monthNames[jrr[1]-1]+', an '+jrr[0];
-        this.toptext = date;
-        this.longdatetext = longdate;
-        this.longdatebtext = longdateb;
-        this.juliantext = '<b>'+'Julian day'+'</b> '+(j-.5);
-        this.offsettext = '<b>'+'Offset'+'</b> '+(off != 0 ? (off) : '0');
+        return daymonth;
     },
     destroy: function() {
         if (this.timeout) {

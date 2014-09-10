@@ -7,3 +7,54 @@
     border-radius: 5px;
     padding: .5em;
 }
+
+.calendar-offset {
+    border-radius: 4px;
+}
+
+.calendar-offset:hover,
+.calendar-offset:focus {
+    background-color: #999999;
+}
+.calendar-offset:active {
+    background-color: #aaaaaa;
+}
+
+.calendar-change-month-more-back {
+    width: 26px;
+    height: 12px;
+    background-image: url("calendar-arrow-left.svg");
+    border-radius: 4px;
+}
+
+.calendar-change-month-more-back:rtl {
+    background-image: url("calendar-arrow-right.svg");
+}
+
+.calendar-change-month-more-back:hover,
+.calendar-change-month-more-back:focus {
+    background-color: #999999;
+}
+.calendar-change-month-more-back:active {
+    background-color: #aaaaaa;
+}
+
+
+.calendar-change-month-more-forward {
+    width: 26px;
+    height: 12px;
+    background-image: url("calendar-arrow-right.svg");
+    border-radius: 4px;
+}
+
+.calendar-change-month-more-forward:rtl {
+    background-image: url("calendar-arrow-left.svg");
+}
+
+.calendar-change-month-more-forward:hover,
+.calendar-change-month-more-forward:focus {
+    background-color: #999999;
+}
+.calendar-change-month-more-forward:active {
+    background-color: #aaaaaa;
+}
