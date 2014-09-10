@@ -463,14 +463,15 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.toptext="French Republican Calendar";
         this.parent(0.5, "FRC");
         let hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
+        hbox.add_child(new St.Label({ text: '\u25BE',
+                                      y_expand: true,
+                                      y_align: Clutter.ActorAlign.CENTER }));
         this.toplabel = new St.Label({ text: this.toptext,
                                     y_expand: true,
                                     y_align: Clutter.ActorAlign.CENTER });
         this.toplabel.clutter_text.set_use_markup(true);
+        this.toplabel.clutter_text.set_width(200);
         hbox.add_child(this.toplabel);
-        hbox.add_child(new St.Label({ text: '\u25BE',
-                                      y_expand: true,
-                                      y_align: Clutter.ActorAlign.CENTER }));
         this.actor.add_actor(hbox);
         let upd=['longdate','longdateb','julian','offset'];
         for (let i=0;i<upd.length;i++) {
@@ -483,6 +484,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.offset);
+        this.menu.actor.set_width(300);
 
         this._slideritem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this.menu.addMenuItem(this._slideritem);
