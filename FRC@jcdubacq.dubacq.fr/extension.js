@@ -9,8 +9,10 @@ const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 const Mainloop = imports.mainloop;
 
-const Gettext = imports.gettext;
-Gettext.textdomain('FRC');
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+const Gettext = imports.gettext.domain('FRC');
 const _ = Gettext.gettext;
 
 let button, timeout, textbox, text, dtext, textb, dtextb, label, dlabel, date, longdate, longdateb;
@@ -638,10 +640,8 @@ function _romanNumeral(n) {
     return '';
 }
 
-function init(metadata) {
-    let localeDir = metadata.dir.get_child('locale');
-    global.log("localeDir: " + localeDir.get_path());
-    Gettext.bindtextdomain('FRC', localeDir.get_path());
+function init() {
+    Convenience.initTranslations();
 }
 
 let _indicator;
