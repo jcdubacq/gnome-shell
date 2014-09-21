@@ -496,12 +496,12 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
                                            accessible_name: _("Previous month"),
                                            can_focus: true });
         this._offsetitem.actor.add(this._morebackButton);
-        this._morebackButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-30,true); }));
+        this._morebackButton.disconnector = this._morebackButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-30,true); }));
         this._backButton = new St.Button({ style_class: 'calendar-change-month-back',
                                            accessible_name: _("Previous day"),
                                            can_focus: true });
         this._offsetitem.actor.add(this._backButton);
-        this._backButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-1,true); }));
+        this._backButton.disconnector = this._backButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(-1,true); }));
         this._offsetButton = new St.Button({ style_class: 'calendar-offset',
                                              y_expand: true,
                                              x_expand: true,
@@ -514,18 +514,18 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
                                          x_align: Clutter.ActorAlign.START,
                                          y_align: Clutter.ActorAlign.CENTER });
         this._offsetButton.add_actor(this.offsetlabel);
-        this._offsetButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(0,false); }));
+        this._offsetButton.disconnector = this._offsetButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(0,false); }));
         this._offsetitem.actor.add(this._offsetButton);
         this._forwardButton = new St.Button({ style_class: 'calendar-change-month-forward',
                                               accessible_name: _("Next day"),
                                               can_focus: true });
         this._offsetitem.actor.add(this._forwardButton);
-        this._forwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(1,true); }));
+        this._forwardButton.disconnector = this._forwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(1,true); }));
         this._moreforwardButton = new St.Button({ style_class: 'calendar-change-month-more-forward',
                                               accessible_name: _("Next month"),
                                               can_focus: true });
         this._offsetitem.actor.add(this._moreforwardButton);
-        this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
+        this._moreforwardButton.disconnector = this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
         this.menu.addMenuItem(this._offsetitem);
 
         this.timeout = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
@@ -613,6 +613,11 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     destroy: function() {
         if (this.timeout) {
             Mainloop.source_remove(this.timeout);
+        }
+        let buttons = ['_morebackButton','_backButton','_offsetButton','_forwardButton','_moreforwardButton'];
+        for (let i = 0;i<buttons.length;i++) {
+            let b = this[buttons[i]];
+            b.disconnect(b.disconnector);
         }
         this.parent();
     },
