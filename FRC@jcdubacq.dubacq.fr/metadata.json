@@ -1,1 +1,1 @@
-{"shell-version": ["3.12.2"], "uuid": "FRC@jcdubacq.dubacq.fr", "name": "French Republican Calendar", "description": "Displays the French Republican Calendar in the top panel", "gettext-domain": "FRC"}
+{"shell-version": ["3.12.2", "3.14"], "uuid": "FRC@jcdubacq.dubacq.fr", "name": "French Republican Calendar", "description": "Displays the French Republican Calendar in the top panel", "gettext-domain": "FRC"}

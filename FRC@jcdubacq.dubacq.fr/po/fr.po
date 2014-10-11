@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-11 01:26+0200\n"
+"POT-Creation-Date: 2014-10-11 23:59+0200\n"
 "PO-Revision-Date: 2014-09-11 01:29+0100\n"
 "Last-Translator: Jean-Christophe Dubacq <jcdubacq1@free.fr>\n"
 "Language-Team: French\n"
@@ -19,34 +19,34 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: extension.js:498
+#: extension.js:496
 msgid "Previous month"
 msgstr "Mois précédent"
 
-#: extension.js:503
+#: extension.js:501
 msgid "Previous day"
 msgstr "Jour précédent"
 
-#: extension.js:522
+#: extension.js:520
 msgid "Next day"
 msgstr "Jour suivant"
 
-#: extension.js:527
+#: extension.js:525
 msgid "Next month"
 msgstr "Mois suivant"
 
-#: extension.js:584
+#: extension.js:582
 msgid "year"
 msgstr "an"
 
-#: extension.js:588
+#: extension.js:586
 msgid "Julian day"
 msgstr "Jour julien"
 
-#: extension.js:589
+#: extension.js:587
 msgid "ISO-8601 date"
 msgstr "Date ISO-8601"
 
-#: extension.js:590
+#: extension.js:596
 msgid "Offset"
 msgstr "Décalage"
