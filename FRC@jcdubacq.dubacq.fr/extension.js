@@ -490,7 +490,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.iso); 
-        this.menu.actor.set_width(350);
+        this.menu.actor.set_width(700);
         this._offsetitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this._morebackButton = new St.Button({ style_class: 'calendar-change-month-more-back',
                                            accessible_name: _("Previous month"),
