@@ -447,8 +447,28 @@ Astro.prototype = {
         this.cache['FRC']=new Array(an, mois, decade, jour);
 
         return this.cache['FRC'];
-    }
+    },
 
+    /*  LEAP_HIJRI  --  Is a given year a leap year in the Islamic calendar ? */
+    leap_hijri: function (year) {
+        return (((year * 11) + 14) % 30) < 11;
+    },
+
+    /*  HIJRI_TO_JD  --  Determine Julian day from Hijri date */
+    hijriEpoch: 1948439.5,
+    hijriWeekdays: ["al-'ahad", "al-'ithnayn", "ath-thalatha'", "al-'arb`a'", "al-khamis", "al-jum`a", "as-sabt"],
+    hijri_to_jd: function (year,month,day) {
+        return (day + Math.ceil(29.5 * (month - 1)) + (year - 1) * 354 + Math.floor((3 + (11 * year)) / 30) + this.hijriEpoch) - 1;
+    },
+    jd_to_hijri: function (jd) {
+        var year, month, day;
+
+        jd = Math.floor(jd) + 0.5;
+        year = Math.floor(((30 * (jd - this.hijriEpoch)) + 10646) / 10631);
+        month = Math.min(12, Math.ceil((jd - (29 + this.hijri_to_jd(year, 1, 1))) / 29.5) + 1);
+        day = (jd - this.hijri_to_jd(year, month, 1)) + 1;
+        return new Array(year, month, day);
+    }
 };
 
 // END BORROWED CODE
@@ -484,9 +504,16 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
             this[upd[i]] = new PopupMenu.PopupMenuItem(upd[i],{activate: false});
             this[upd[i]+'label'] = this[upd[i]].label;
             this[upd[i]].label.clutter_text.set_use_markup(true);
-        }        
+        }
+	this.hijri = new PopupMenu.PopupMenuItem('hijri',{activate: false});
+        this.hijrilabel=this.hijri.label;
+        this.arabiclabel=new St.Label({ text: 'arabic', x_expand: true, x_align: Clutter.ActorAlign.END });
+        this.hijri.actor.add_child(this.arabiclabel);
         this.menu.addMenuItem(this.longdate);
         this.menu.addMenuItem(this.longdateb); 
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
+        this._hijriitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
+        this.menu.addMenuItem(this.hijri);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.iso); 
@@ -555,7 +582,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     },
     update: function() {
         this._setDate();
-        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'offset' ];
+        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'hijri', 'arabic', 'offset' ];
         for (let i=0 ; i < upd.length; i++) {
             if (this[upd[i]+'label']) {
                 this[upd[i]+'label'].clutter_text.set_markup(this[upd[i]+'text']);
@@ -571,13 +598,14 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         let j = astro.gregorian_to_jd(time.getFullYear(), time.getMonth() + 1, time.getDate());
         let jj = j + off;
         jrr = astro.jd_to_french_revolutionary(jj);
-        if (jj != 0) {
+        if (off != 0) {
             jrrr = astro.jd_to_french_revolutionary(j);
         } else {
             jrrr = jrr;
         }
         let offgd = astro.jd_to_gregorian(jj);
         let daymonth=this._daymonth(jrr);
+        let hijrid = astro.jd_to_hijri(jj);
         if (jrr[1]!=13) {
             longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
             longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
@@ -594,6 +622,8 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         if (offgd[1]<10) {
             this.isotext = this.isotext + '0';
         }
+	this.hijritext = hijrid[2]+' '+_hijriMonthNames[hijrid[1]-1]+' '+hijrid[0]+' AH';
+	this.arabictext = hijrid[2]+' '+_hijriArabicMonthNames[hijrid[1]-1]+' '+hijrid[0];
         this.isotext = this.isotext + offgd[1]+'-';
         if (offgd[2]<10) {
             this.isotext = this.isotext + '0';
@@ -634,6 +664,8 @@ let _sansculottidesNames = ['jour de la vertu','jour du génie','jour du travail
 let _dayNames = ['Primidi','Duodi','Tridi','Quartidi', 'Quintidi', 'Sextidi', 'Septidi', 'Octidi', 'Nonidi', 'Décadi'];
 let _decadeNames = ['première','deuxième','troisième'];
 let _saintsNames = [['Raisin','Safran','Châtaigne','Colchique','Cheval','Balsamine','Carotte','Amaranthe','Panais','Cuve','Pomme de terre','Immortelle','Potiron','Réséda','Âne','Belle de nuit','Citrouille','Sarrasin','Tournesol','Pressoir','Chanvre','Pêche','Navet','Amaryllis','Bœuf','Aubergine','Piment','Tomate','Orge','Tonneau'], ['Pomme','Céleri','Poire','Betterave','Oie','Héliotrope','Figue','Scorsonère','Alisier','Charrue','Salsifis','Mâcre','Topinambour','Endive','Dindon','Chervis','Cresson','Dentelaire','Grenade','Herse','Bacchante','Azerole','Garance','Orange','Faisan','Pistache','Macjonc','Coing','Cormier','Rouleau'], ['Raiponce','Turneps','Chicorée','Nèfle','Cochon','Mâche','Chou-fleur','Miel','Genièvre','Pioche','Cire','Raifort','Cèdre','Sapin','Chevreuil','Ajonc','Cyprès','Lierre','Sabine','Hoyau','Érable sucré','Bruyère','Roseau','Oseille','Grillon','Pignon','Liège','Truffe','Olive','Pelle'], ['Tourbe','Houille','Bitume','Soufre','Chien','Lave','Terre végétale','Fumier','Salpêtre','Fléau','Granit','Argile','Ardoise','Grès','Lapin','Silex','Marne','Pierre à chaux','Marbre','Van','Pierre à plâtre','Sel','Fer','Cuivre','Chat','Étain','Plomb','Zinc','Mercure','Crible'], ['Lauréole','Mousse','Fragon','Perce-neige','Taureau','Laurier tin','Amadouvier','Mézéréon','Peuplier','Coignée','Ellébore','Brocoli','Laurier','Avelinier','Vache','Buis','Lichen','If','Pulmonaire','Serpette','Thlaspi','Thimele','Chiendent','Trainasse','Lièvre','Guède','Noisetier','Cyclamen','Chélidoine','Traîneau'], ['Tussilage','Cornouiller','Violier','Troène','Bouc','Asaret','Alaterne','Violette','Marceau','Bêche','Narcisse','Orme','Fumeterre','Vélar','Chèvre','Épinard','Doronic','Mouron','Cerfeuil','Cordeau','Mandragore','Persil','Cochléaria','Pâquerette','Thon','Pissenlit','Sylvie','Capillaire','Frêne','Plantoir'], ['Primevère','Platane','Asperge','Tulipe','Poule','Bette','Bouleau','Jonquille','Aulne','Couvoir','Pervenche','Charme','Morille','Hêtre','Abeille','Laitue','Mélèze','Ciguë','Radis','Ruche','Gainier','Romaine','Marronnier','Roquette','Pigeon','Lilas (commun)','Anémone','Pensée','Myrtile','Greffoir'], ['Rose','Chêne','Fougère','Aubépine','Rossignol','Ancolie','Muguet','Champignon','Hyacinthe','Râteau','Rhubarbe','Sainfoin','Bâton-d´or','Chamerops','Ver à soie','Consoude','Pimprenelle','Corbeille d´or','Arroche','Sarcloir','Statice','Fritillaire','Bourrache','Valériane','Carpe','Fusain','Civette','Buglosse','Sénevé','Houlette'], ['Luzerne','Hémérocalle','Trèfle','Angélique','Canard','Mélisse','Fromental','Martagon','Serpolet','Faux','Fraise','Bétoine','Pois','Acacia','Caille','Œillet','Sureau','Pavot','Tilleul','Fourche','Barbeau','Camomille','Chèvrefeuille','Caille-lait','Tanche','Jasmin','Verveine','Thym','Pivoine','Chariot'], ['Seigle','Avoine','Oignon','Véronique','Mulet','Romarin','Concombre','Échalote','Absinthe','Faucille','Coriandre','Artichaut','Girofle','Lavande','Chamois','Tabac','Groseille','Gesse','Cerise','Parc','Menthe','Cumin','Haricot','Orcanète','Pintade','Sauge','Ail','Vesce','Blé','Chalemie'], ['Épeautre','Bouillon-blanc','Melon','Ivraie','Bélier','Prêle','Armoise','Carthame','Mûre','Arrosoir','Panic','Salicorne','Abricot','Basilic','Brebis','Guimauve','Lin','Amande','Gentiane','Écluse','Carline','Câprier','Lentille','Aunée','Loutre','Myrte','Colza','Lupin','Coton','Moulin'], ['Prune','Millet','Lycoperdon','Escourgeon','Saumon','Tubéreuse','Sucrion','Apocyn','Réglisse','Échelle','Pastèque','Fenouil','Épine vinette','Noix','Truite','Citron','Cardère','Nerprun','Tagette','Hotte','Églantier','Noisette','Houblon','Sorgho','Écrevisse','Bigarade','Verge d´or','Maïs','Marron','Panier']];
+let _hijriMonthNames = ['Muḥarram','Ṣafar','Rabī‘ al-awwal','Rabī‘ ath-thānī','Jumādá al-ūlá','Jumādá al-ākhirah','Rajab','Sha‘bān','Ramaḍān','Shawwāl','Dhū al-Qa‘dah','Dhū al-Ḥijjah'];
+let _hijriArabicMonthNames = ['مُحَرَّم','صَفَر','رَبيع الأوّل','رَبيع الثاني','جُمادى الأولى','جُمادى الآخرة','رَجَب','شَعْبان','رَمَضان','شَوّال','ذو القعدة','ذو الحجة'];
 function _romanNumeral(n) {
     var val, s = '', limit = 3999, i = 0;
     var v = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
