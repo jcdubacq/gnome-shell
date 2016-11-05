@@ -1,0 +1,17 @@
+#!/bin/sh
+# to be called in main extension directory
+
+if [ ! -d po ]; then
+  echo "Are you sure you are calling this script from the right location?"
+  echo "There is no po directory!"
+  exit 1
+fi
+
+DIR=$(basename $(pwd))
+echo $DIR
+
+TARGET="$HOME/.local/share/gnome-shell/extensions/$DIR"
+if [ -f "$TARGET" ]; then
+  mkdir -p "$TARGET"
+fi
+rsync -avz --delete "../$DIR/." "$TARGET/."
