@@ -490,7 +490,6 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.iso); 
-        this.menu.actor.set_width(700);
         this._offsetitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this._morebackButton = new St.Button({ style_class: 'calendar-change-month-more-back',
                                            accessible_name: _("Previous month"),
@@ -527,6 +526,13 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this._offsetitem.actor.add(this._moreforwardButton);
         this._moreforwardButton.disconnector = this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
         this.menu.addMenuItem(this._offsetitem);
+        let naturalSize=this.iso.actor.get_preferred_height(900000)[0]*12;
+        let minSize=Main.panel.actor.width/6;
+        if (minSize>naturalSize) {
+            this.menu.actor.set_width(minSize);
+        } else {
+            this.menu.actor.set_width(naturalSize);
+        }
 
         this.timeout = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
             this.update();
