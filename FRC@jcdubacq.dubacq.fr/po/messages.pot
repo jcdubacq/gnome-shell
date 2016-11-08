@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-20 21:04+0100\n"
+"POT-Creation-Date: 2016-11-07 16:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,34 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:496
+#: extension.js:495
 msgid "Previous month"
 msgstr ""
 
-#: extension.js:501
+#: extension.js:500
 msgid "Previous day"
 msgstr ""
 
-#: extension.js:520
+#: extension.js:519
 msgid "Next day"
 msgstr ""
 
-#: extension.js:525
+#: extension.js:524
 msgid "Next month"
 msgstr ""
 
-#: extension.js:582
+#: extension.js:588
 msgid "year"
 msgstr ""
 
-#: extension.js:586
+#: extension.js:592
 msgid "Julian day"
 msgstr ""
 
-#: extension.js:587
+#: extension.js:593
 msgid "ISO-8601 date"
 msgstr ""
 
-#: extension.js:596
+#: extension.js:602
 msgid "Offset"
 msgstr ""
