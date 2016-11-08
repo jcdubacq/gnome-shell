@@ -468,6 +468,110 @@ Astro.prototype = {
         month = Math.min(12, Math.ceil((jd - (29 + this.hijri_to_jd(year, 1, 1))) / 29.5) + 1);
         day = (jd - this.hijri_to_jd(year, month, 1)) + 1;
         return new Array(year, month, day);
+    },
+
+
+    //  HEBREW_TO_JD  --  Determine Julian day from Hebrew date
+    hebrewEpoch: 347995.5,
+    //  Is a given Hebrew year a leap year ?
+    hebrew_leap: function(year) {
+	return this.mod(((year * 7) + 1), 19) < 7;
+    },
+
+    //  How many months are there in a Hebrew year (12 = normal, 13 = leap)
+    hebrew_year_months: function(year) {
+	return this.hebrew_leap(year) ? 13 : 12;
+    },
+    //  Test for delay of start of new year and to avoid
+    //  Sunday, Wednesday, and Friday as start of the new year.
+    hebrew_delay_1: function(year) {
+	let months = Math.floor(((235 * year) - 234) / 19);
+	let parts = 12084 + (13753 * months);
+	let day = (months * 29) + Math.floor(parts / 25920);
+	
+	if (this.mod((3 * (day + 1)), 7) < 3) {
+            day++;
+	}
+	return day;
+    },
+    //  Check for delay in start of new year due to length of adjacent years
+    hebrew_delay_2: function(year) {
+	var last, present, next;
+	
+	last = this.hebrew_delay_1(year - 1);
+	present = this.hebrew_delay_1(year);
+	next = this.hebrew_delay_1(year + 1);
+	
+	return ((next - present) == 356) ? 2 :
+            (((present - last) == 382) ? 1 : 0);
+    },
+
+    //  How many days are in a Hebrew year ?
+    hebrew_year_days: function(year) {
+	return this.hebrew_to_jd(year + 1, 7, 1) - this.hebrew_to_jd(year, 7, 1);
+    },
+
+    //  How many days are in a given month of a given year
+    hebrew_month_days: function(year, month) {
+    //  First of all, dispose of fixed-length 29 day months
+	if (month == 2 || month == 4 || month == 6 || month == 10 || month == 13) {
+            return 29;
+	}
+	//  If it's not a leap year, Adar has 29 days
+	if (month == 12 && !this.hebrew_leap(year)) { return 29; }
+	//  If it's Heshvan, days depend on length of year
+	if (month == 8 && !(this.mod(this.hebrew_year_days(year), 10) == 5)) { return 29; }
+	//  Similarly, Kislev varies with the length of year
+	if (month == 9 && (this.mod(this.hebrew_year_days(year), 10) == 3)) { return 29; }
+	//  Nope, it's a 30 day month
+	return 30;
+    },
+
+    //  Finally, wrap it all up into...
+
+    hebrew_to_jd: function(year, month, day) {
+	var jd, mon, months;
+	
+	months = this.hebrew_year_months(year);
+	jd = this.hebrewEpoch + this.hebrew_delay_1(year) +
+            this.hebrew_delay_2(year) + day + 1;
+	
+	if (month < 7) {
+            for (mon = 7; mon <= months; mon++) {
+		jd += this.hebrew_month_days(year, mon);
+            }
+            for (mon = 1; mon < month; mon++) {
+		jd += this.hebrew_month_days(year, mon);
+            }
+	} else {
+            for (mon = 7; mon < month; mon++) {
+		jd += this.hebrew_month_days(year, mon);
+            }
+	}
+	return jd;
+    },
+
+/*  JD_TO_HEBREW  --  Convert Julian date to Hebrew date
+                      This works by making multiple calls to
+                      the inverse function, and is this very
+                      slow.  */
+
+    jd_to_hebrew: function(jd) {
+	var year, month, day, i, count, first;
+	
+	jd = Math.floor(jd) + 0.5;
+	count = Math.floor(((jd - this.hebrewEpoch) * 98496.0) / 35975351.0);
+	year = count - 1;
+	for (i = count; jd >= this.hebrew_to_jd(i, 7, 1); i++) {
+            year++;
+	}
+	first = (jd < this.hebrew_to_jd(year, 1, 1)) ? 7 : 1;
+	month = first;
+	for (i = first; jd > this.hebrew_to_jd(year, i, this.hebrew_month_days(year, i)); i++) {
+            month++;
+	}
+	day = (jd - this.hebrew_to_jd(year, month, 1)) + 1;
+	return new Array(year, month, day);
     }
 };
 
@@ -505,15 +609,25 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
             this[upd[i]+'label'] = this[upd[i]].label;
             this[upd[i]].label.clutter_text.set_use_markup(true);
         }
+        this.menu.addMenuItem(this.longdate);
+        this.menu.addMenuItem(this.longdateb);
+	
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 	this.hijri = new PopupMenu.PopupMenuItem('hijri',{activate: false});
         this.hijrilabel=this.hijri.label;
         this.arabiclabel=new St.Label({ text: 'arabic', x_expand: true, x_align: Clutter.ActorAlign.END });
         this.hijri.actor.add_child(this.arabiclabel);
-        this.menu.addMenuItem(this.longdate);
-        this.menu.addMenuItem(this.longdateb); 
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this._hijriitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this.menu.addMenuItem(this.hijri);
+	
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
+	this.hebrew = new PopupMenu.PopupMenuItem('hebrew',{activate: false});
+        this.hebrewlabel=this.hebrew.label;
+        this.hebraiclabel=new St.Label({ text: 'hebraic', x_expand: true, x_align: Clutter.ActorAlign.END });
+        this.hebrew.actor.add_child(this.hebraiclabel);
+        this._hebrewitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
+        this.menu.addMenuItem(this.hebrew);
+	
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.iso); 
@@ -582,7 +696,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     },
     update: function() {
         this._setDate();
-        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'hijri', 'arabic', 'offset' ];
+        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'hijri', 'arabic', 'hebrew', 'hebraic', 'offset' ];
         for (let i=0 ; i < upd.length; i++) {
             if (this[upd[i]+'label']) {
                 this[upd[i]+'label'].clutter_text.set_markup(this[upd[i]+'text']);
@@ -606,6 +720,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         let offgd = astro.jd_to_gregorian(jj);
         let daymonth=this._daymonth(jrr);
         let hijrid = astro.jd_to_hijri(jj);
+        let hebrewd = astro.jd_to_hebrew(jj);
         if (jrr[1]!=13) {
             longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
             longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
@@ -624,6 +739,13 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         }
 	this.hijritext = hijrid[2]+' '+_hijriMonthNames[hijrid[1]-1]+' '+hijrid[0]+' AH';
 	this.arabictext = hijrid[2]+' '+_hijriArabicMonthNames[hijrid[1]-1]+' '+hijrid[0];
+	let hebrewmonth=hebrewd[1]-1;
+	let hebrewleapyear=astro.hebrew_leap(hebrewd[0]);
+	if (hebrewmonth == 11 && !hebrewleapyear) {
+	    hebrewmonth = 13;
+	}
+	this.hebrewtext = hebrewd[2]+' '+_hebrewMonthNames[hebrewd[1]-1]+' '+hebrewd[0]+' AH';
+	this.hebraictext = numberToAmmud(hebrewd[2])+' '+_hebrewHebraicMonthNames[hebrewmonth]+' '+numberToAmmud(hebrewd[0])+' AM';
         this.isotext = this.isotext + offgd[1]+'-';
         if (offgd[2]<10) {
             this.isotext = this.isotext + '0';
@@ -666,6 +788,8 @@ let _decadeNames = ['première','deuxième','troisième'];
 let _saintsNames = [['Raisin','Safran','Châtaigne','Colchique','Cheval','Balsamine','Carotte','Amaranthe','Panais','Cuve','Pomme de terre','Immortelle','Potiron','Réséda','Âne','Belle de nuit','Citrouille','Sarrasin','Tournesol','Pressoir','Chanvre','Pêche','Navet','Amaryllis','Bœuf','Aubergine','Piment','Tomate','Orge','Tonneau'], ['Pomme','Céleri','Poire','Betterave','Oie','Héliotrope','Figue','Scorsonère','Alisier','Charrue','Salsifis','Mâcre','Topinambour','Endive','Dindon','Chervis','Cresson','Dentelaire','Grenade','Herse','Bacchante','Azerole','Garance','Orange','Faisan','Pistache','Macjonc','Coing','Cormier','Rouleau'], ['Raiponce','Turneps','Chicorée','Nèfle','Cochon','Mâche','Chou-fleur','Miel','Genièvre','Pioche','Cire','Raifort','Cèdre','Sapin','Chevreuil','Ajonc','Cyprès','Lierre','Sabine','Hoyau','Érable sucré','Bruyère','Roseau','Oseille','Grillon','Pignon','Liège','Truffe','Olive','Pelle'], ['Tourbe','Houille','Bitume','Soufre','Chien','Lave','Terre végétale','Fumier','Salpêtre','Fléau','Granit','Argile','Ardoise','Grès','Lapin','Silex','Marne','Pierre à chaux','Marbre','Van','Pierre à plâtre','Sel','Fer','Cuivre','Chat','Étain','Plomb','Zinc','Mercure','Crible'], ['Lauréole','Mousse','Fragon','Perce-neige','Taureau','Laurier tin','Amadouvier','Mézéréon','Peuplier','Coignée','Ellébore','Brocoli','Laurier','Avelinier','Vache','Buis','Lichen','If','Pulmonaire','Serpette','Thlaspi','Thimele','Chiendent','Trainasse','Lièvre','Guède','Noisetier','Cyclamen','Chélidoine','Traîneau'], ['Tussilage','Cornouiller','Violier','Troène','Bouc','Asaret','Alaterne','Violette','Marceau','Bêche','Narcisse','Orme','Fumeterre','Vélar','Chèvre','Épinard','Doronic','Mouron','Cerfeuil','Cordeau','Mandragore','Persil','Cochléaria','Pâquerette','Thon','Pissenlit','Sylvie','Capillaire','Frêne','Plantoir'], ['Primevère','Platane','Asperge','Tulipe','Poule','Bette','Bouleau','Jonquille','Aulne','Couvoir','Pervenche','Charme','Morille','Hêtre','Abeille','Laitue','Mélèze','Ciguë','Radis','Ruche','Gainier','Romaine','Marronnier','Roquette','Pigeon','Lilas (commun)','Anémone','Pensée','Myrtile','Greffoir'], ['Rose','Chêne','Fougère','Aubépine','Rossignol','Ancolie','Muguet','Champignon','Hyacinthe','Râteau','Rhubarbe','Sainfoin','Bâton-d´or','Chamerops','Ver à soie','Consoude','Pimprenelle','Corbeille d´or','Arroche','Sarcloir','Statice','Fritillaire','Bourrache','Valériane','Carpe','Fusain','Civette','Buglosse','Sénevé','Houlette'], ['Luzerne','Hémérocalle','Trèfle','Angélique','Canard','Mélisse','Fromental','Martagon','Serpolet','Faux','Fraise','Bétoine','Pois','Acacia','Caille','Œillet','Sureau','Pavot','Tilleul','Fourche','Barbeau','Camomille','Chèvrefeuille','Caille-lait','Tanche','Jasmin','Verveine','Thym','Pivoine','Chariot'], ['Seigle','Avoine','Oignon','Véronique','Mulet','Romarin','Concombre','Échalote','Absinthe','Faucille','Coriandre','Artichaut','Girofle','Lavande','Chamois','Tabac','Groseille','Gesse','Cerise','Parc','Menthe','Cumin','Haricot','Orcanète','Pintade','Sauge','Ail','Vesce','Blé','Chalemie'], ['Épeautre','Bouillon-blanc','Melon','Ivraie','Bélier','Prêle','Armoise','Carthame','Mûre','Arrosoir','Panic','Salicorne','Abricot','Basilic','Brebis','Guimauve','Lin','Amande','Gentiane','Écluse','Carline','Câprier','Lentille','Aunée','Loutre','Myrte','Colza','Lupin','Coton','Moulin'], ['Prune','Millet','Lycoperdon','Escourgeon','Saumon','Tubéreuse','Sucrion','Apocyn','Réglisse','Échelle','Pastèque','Fenouil','Épine vinette','Noix','Truite','Citron','Cardère','Nerprun','Tagette','Hotte','Églantier','Noisette','Houblon','Sorgho','Écrevisse','Bigarade','Verge d´or','Maïs','Marron','Panier']];
 let _hijriMonthNames = ['Muḥarram','Ṣafar','Rabī‘ al-awwal','Rabī‘ ath-thānī','Jumādá al-ūlá','Jumādá al-ākhirah','Rajab','Sha‘bān','Ramaḍān','Shawwāl','Dhū al-Qa‘dah','Dhū al-Ḥijjah'];
 let _hijriArabicMonthNames = ['مُحَرَّم','صَفَر','رَبيع الأوّل','رَبيع الثاني','جُمادى الأولى','جُمادى الآخرة','رَجَب','شَعْبان','رَمَضان','شَوّال','ذو القعدة','ذو الحجة'];
+let _hebrewMonthNames = ['Nissan','Iyar','Sivan','Tamouz','Av','Éloul','Tichri','Hèchvan','Kislev','Téveth','Chevat','Adar I','Adar II','Adar'];
+let _hebrewHebraicMonthNames = ['ניסן','איר','סיון','תמוז','אב','אלול','תשרי','חשון','כסלו','טבת','שבט','אדר א','אדר ב','אדר'];
 function _romanNumeral(n) {
     var val, s = '', limit = 3999, i = 0;
     var v = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
@@ -682,6 +806,32 @@ function _romanNumeral(n) {
     }
     return '';
 }
+
+function numberToAmmud (daf) {    
+    if (!daf > 0) return "";  
+    var  thousands = ["","א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ז׳","ח׳","ט׳"],  
+        hundreds = ["","ק","ר","ש","ת","תק","תר","תש","תת","תתק"],  
+        tens = ["","י","כ","ל","מ","נ","ס","ע","פ","צ"],  
+        ones = ["","א","ב","ג","ד","ה","ו","ז","ח","ט"],  
+        ten = tens[Math.floor((daf/10))%10],  
+        one = ones[daf%10],  
+        hundred = hundreds[(Math.floor(daf/100))%10],  
+        thousand = thousands[(Math.floor(daf/1000))%10],  
+        aVerylot = "",  
+        c = 10000000000000000;  
+    if (daf >c) return "Number tooooooo big"  
+    while (c > 1000) {aVerylot +=  thousands[(Math.floor(daf/c))%10]; c = c/10}  
+    if (ten == "י" && one == "ה") {ten = "ט"; one = "ו";}  
+    else if (ten == "י" && one == "ו")  {ten = "ט"; one = "ז";}  
+    else if (hundred == "ר" && ten == "צ" && one == "ח")  {ten = "ח"; one = "צ";}  
+    else if (hundred == "ש" && ten == "מ" && one == "ד")  {ten = "ד"; one = "מ";}  
+    var ammud = aVerylot + thousand + hundred+ten+one;  
+    if  (ammud.length > 1 && (one !=0 || ten !=0 || hundred !=0 )) ammud = ammud.slice (0,ammud.length-1) +"״" +ammud.slice (ammud.length-1,ammud.length);  
+    // ammud = aOrB + ammud;  
+    if (!ammud.length)  ammud = " " ;  
+    return  ammud;  
+}  
+
 
 function init() {
     Convenience.initTranslations();
