@@ -70,6 +70,9 @@ Astro.prototype = {
     mod: function (a, b) {
         return a - (b * Math.floor(a / b));
     },
+    jwday: function (j) {
+	return this.mod(Math.floor((j + 1.5)), 7);
+    },
 
     /*  DELTAT  --  Determine the difference, in seconds, between
         Dynamical time and Universal time.  */
@@ -603,7 +606,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         // this.toplabel.clutter_text.set_width(200);
         hbox.add_child(this.toplabel);
         this.actor.add_actor(hbox);
-        let upd=['longdate','longdateb','julian','iso'];
+        let upd=['longdate','longdateb','julian','iso','epoch'];
         for (let i=0;i<upd.length;i++) {
             this[upd[i]] = new PopupMenu.PopupMenuItem(upd[i],{activate: false});
             this[upd[i]+'label'] = this[upd[i]].label;
@@ -631,6 +634,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); 
         this.menu.addMenuItem(this.julian); 
         this.menu.addMenuItem(this.iso); 
+        this.menu.addMenuItem(this.epoch); 
         this._offsetitem = new PopupMenu.PopupBaseMenuItem({ activate: false });
         this._morebackButton = new St.Button({ style_class: 'calendar-change-month-more-back',
                                            accessible_name: _("Previous month"),
@@ -668,7 +672,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this._moreforwardButton.disconnector = this._moreforwardButton.connect('clicked', Lang.bind(this, function() { this.changeOffset(30,true); }));
         this.menu.addMenuItem(this._offsetitem);
         let naturalSize=this.iso.actor.get_preferred_height(900000)[0]*12;
-        let minSize=Main.panel.actor.width/6;
+        let minSize=Main.panel.actor.width/3;
         if (minSize>naturalSize) {
             this.menu.actor.set_width(minSize);
         } else {
@@ -696,7 +700,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
     },
     update: function() {
         this._setDate();
-        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'hijri', 'arabic', 'hebrew', 'hebraic', 'offset' ];
+        const upd = [ 'top', 'longdate', 'longdateb', 'julian' , 'iso', 'epoch', 'hijri', 'arabic', 'hebrew', 'hebraic', 'offset' ];
         for (let i=0 ; i < upd.length; i++) {
             if (this[upd[i]+'label']) {
                 this[upd[i]+'label'].clutter_text.set_markup(this[upd[i]+'text']);
@@ -721,6 +725,7 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         let daymonth=this._daymonth(jrr);
         let hijrid = astro.jd_to_hijri(jj);
         let hebrewd = astro.jd_to_hebrew(jj);
+	let dayweek = astro.jwday(jj);
         if (jrr[1]!=13) {
             longdate = _dayNames[jrr[3]-1]+', '+daymonth+' '+_monthNames[jrr[1]-1]+', an '+_romanNumeral(jrr[0]);
             longdateb = '<i>'+_saintsNames[jrr[1]-1][(jrr[2]-1)*10+jrr[3]-1]+'</i>, jour '+jrr[3]+" de la "+_decadeNames[jrr[2]-1]+' décade';
@@ -734,18 +739,20 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
         this.longdatebtext = longdateb;
         this.juliantext = '<b>'+_("Julian day")+'</b> '+(jj-.5);
         this.isotext = '<b>'+_("ISO-8601 date")+'</b> '+offgd[0]+'-';
+	this.epochtext = '<b>'+_("UNIX epoch")+'</b> '+ Math.floor(time.getTime()/1000);
         if (offgd[1]<10) {
             this.isotext = this.isotext + '0';
         }
-	this.hijritext = hijrid[2]+' '+_hijriMonthNames[hijrid[1]-1]+' '+hijrid[0]+' AH';
-	this.arabictext = hijrid[2]+' '+_hijriArabicMonthNames[hijrid[1]-1]+' '+hijrid[0];
+	this.hijritext = _hijriDayNames[dayweek]+' '+hijrid[2]+' '+_hijriMonthNames[hijrid[1]-1]+' AH '+hijrid[0];
+	this.arabictext = _hijriArabicDayNames[dayweek]+' '+hijrid[2]+' '+_hijriArabicMonthNames[hijrid[1]-1]+' '+hijrid[0]+' هـ';
 	let hebrewmonth=hebrewd[1]-1;
 	let hebrewleapyear=astro.hebrew_leap(hebrewd[0]);
 	if (hebrewmonth == 11 && !hebrewleapyear) {
 	    hebrewmonth = 13;
 	}
-	this.hebrewtext = hebrewd[2]+' '+_hebrewMonthNames[hebrewd[1]-1]+' '+hebrewd[0]+' AH';
-	this.hebraictext = numberToAmmud(hebrewd[2])+' '+_hebrewHebraicMonthNames[hebrewmonth]+' '+numberToAmmud(hebrewd[0])+' AM';
+	let hin=''; // Sometimes 'ב' is used instead
+	this.hebrewtext = _hebrewDayNames[dayweek]+' '+hebrewd[2]+' '+_hebrewMonthNames[hebrewmonth]+' AM '+hebrewd[0];
+	this.hebraictext = _hebrewHebraicDayNames[dayweek]+' '+numberToAmmud(hebrewd[2])+'׳ '+hin+_hebrewHebraicMonthNames[hebrewmonth]+' '+numberToAmmud(hebrewd[0]);
         this.isotext = this.isotext + offgd[1]+'-';
         if (offgd[2]<10) {
             this.isotext = this.isotext + '0';
@@ -788,8 +795,13 @@ let _decadeNames = ['première','deuxième','troisième'];
 let _saintsNames = [['Raisin','Safran','Châtaigne','Colchique','Cheval','Balsamine','Carotte','Amaranthe','Panais','Cuve','Pomme de terre','Immortelle','Potiron','Réséda','Âne','Belle de nuit','Citrouille','Sarrasin','Tournesol','Pressoir','Chanvre','Pêche','Navet','Amaryllis','Bœuf','Aubergine','Piment','Tomate','Orge','Tonneau'], ['Pomme','Céleri','Poire','Betterave','Oie','Héliotrope','Figue','Scorsonère','Alisier','Charrue','Salsifis','Mâcre','Topinambour','Endive','Dindon','Chervis','Cresson','Dentelaire','Grenade','Herse','Bacchante','Azerole','Garance','Orange','Faisan','Pistache','Macjonc','Coing','Cormier','Rouleau'], ['Raiponce','Turneps','Chicorée','Nèfle','Cochon','Mâche','Chou-fleur','Miel','Genièvre','Pioche','Cire','Raifort','Cèdre','Sapin','Chevreuil','Ajonc','Cyprès','Lierre','Sabine','Hoyau','Érable sucré','Bruyère','Roseau','Oseille','Grillon','Pignon','Liège','Truffe','Olive','Pelle'], ['Tourbe','Houille','Bitume','Soufre','Chien','Lave','Terre végétale','Fumier','Salpêtre','Fléau','Granit','Argile','Ardoise','Grès','Lapin','Silex','Marne','Pierre à chaux','Marbre','Van','Pierre à plâtre','Sel','Fer','Cuivre','Chat','Étain','Plomb','Zinc','Mercure','Crible'], ['Lauréole','Mousse','Fragon','Perce-neige','Taureau','Laurier tin','Amadouvier','Mézéréon','Peuplier','Coignée','Ellébore','Brocoli','Laurier','Avelinier','Vache','Buis','Lichen','If','Pulmonaire','Serpette','Thlaspi','Thimele','Chiendent','Trainasse','Lièvre','Guède','Noisetier','Cyclamen','Chélidoine','Traîneau'], ['Tussilage','Cornouiller','Violier','Troène','Bouc','Asaret','Alaterne','Violette','Marceau','Bêche','Narcisse','Orme','Fumeterre','Vélar','Chèvre','Épinard','Doronic','Mouron','Cerfeuil','Cordeau','Mandragore','Persil','Cochléaria','Pâquerette','Thon','Pissenlit','Sylvie','Capillaire','Frêne','Plantoir'], ['Primevère','Platane','Asperge','Tulipe','Poule','Bette','Bouleau','Jonquille','Aulne','Couvoir','Pervenche','Charme','Morille','Hêtre','Abeille','Laitue','Mélèze','Ciguë','Radis','Ruche','Gainier','Romaine','Marronnier','Roquette','Pigeon','Lilas (commun)','Anémone','Pensée','Myrtile','Greffoir'], ['Rose','Chêne','Fougère','Aubépine','Rossignol','Ancolie','Muguet','Champignon','Hyacinthe','Râteau','Rhubarbe','Sainfoin','Bâton-d´or','Chamerops','Ver à soie','Consoude','Pimprenelle','Corbeille d´or','Arroche','Sarcloir','Statice','Fritillaire','Bourrache','Valériane','Carpe','Fusain','Civette','Buglosse','Sénevé','Houlette'], ['Luzerne','Hémérocalle','Trèfle','Angélique','Canard','Mélisse','Fromental','Martagon','Serpolet','Faux','Fraise','Bétoine','Pois','Acacia','Caille','Œillet','Sureau','Pavot','Tilleul','Fourche','Barbeau','Camomille','Chèvrefeuille','Caille-lait','Tanche','Jasmin','Verveine','Thym','Pivoine','Chariot'], ['Seigle','Avoine','Oignon','Véronique','Mulet','Romarin','Concombre','Échalote','Absinthe','Faucille','Coriandre','Artichaut','Girofle','Lavande','Chamois','Tabac','Groseille','Gesse','Cerise','Parc','Menthe','Cumin','Haricot','Orcanète','Pintade','Sauge','Ail','Vesce','Blé','Chalemie'], ['Épeautre','Bouillon-blanc','Melon','Ivraie','Bélier','Prêle','Armoise','Carthame','Mûre','Arrosoir','Panic','Salicorne','Abricot','Basilic','Brebis','Guimauve','Lin','Amande','Gentiane','Écluse','Carline','Câprier','Lentille','Aunée','Loutre','Myrte','Colza','Lupin','Coton','Moulin'], ['Prune','Millet','Lycoperdon','Escourgeon','Saumon','Tubéreuse','Sucrion','Apocyn','Réglisse','Échelle','Pastèque','Fenouil','Épine vinette','Noix','Truite','Citron','Cardère','Nerprun','Tagette','Hotte','Églantier','Noisette','Houblon','Sorgho','Écrevisse','Bigarade','Verge d´or','Maïs','Marron','Panier']];
 let _hijriMonthNames = ['Muḥarram','Ṣafar','Rabī‘ al-awwal','Rabī‘ ath-thānī','Jumādá al-ūlá','Jumādá al-ākhirah','Rajab','Sha‘bān','Ramaḍān','Shawwāl','Dhū al-Qa‘dah','Dhū al-Ḥijjah'];
 let _hijriArabicMonthNames = ['مُحَرَّم','صَفَر','رَبيع الأوّل','رَبيع الثاني','جُمادى الأولى','جُمادى الآخرة','رَجَب','شَعْبان','رَمَضان','شَوّال','ذو القعدة','ذو الحجة'];
+let _hijriDayNames = ['Yawm al-Aḥad','Yawm al-Ithnayn','Yawm ath-Thulāthā’','Yawm al-Arba‘ā’','Yawm al-Khamīs','Yawm al-Jum‘ah','Yawm as-Sabt'];
+let _hijriArabicDayNames = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 let _hebrewMonthNames = ['Nissan','Iyar','Sivan','Tamouz','Av','Éloul','Tichri','Hèchvan','Kislev','Téveth','Chevat','Adar I','Adar II','Adar'];
 let _hebrewHebraicMonthNames = ['ניסן','איר','סיון','תמוז','אב','אלול','תשרי','חשון','כסלו','טבת','שבט','אדר א','אדר ב','אדר'];
+let _hebrewDayNames = ['Yom Rishon','Yom Sheni','Yom Shlishi','Yom Reviʻi','Yom Chamishi','Yom Shishi','Yom Shabbat']
+let _hebrewHebraicDayNames = ['יום ראשון','יום שני','יום שלישי','יום רביעי','יום חמישי','יום ששי','יום שבת']
+		       
 function _romanNumeral(n) {
     var val, s = '', limit = 3999, i = 0;
     var v = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
