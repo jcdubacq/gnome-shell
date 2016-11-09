@@ -7,6 +7,18 @@ if [ ! -d po ]; then
   exit 1
 fi
 
+find . -name '*.js' -print0 | xargs -0 xgettext --from-code=UTF-8 -k_ -kN_ -o po/messages.pot
+
+GETTEXTID=$(fmt -w 1 < metadata.json|grep -A 1 gettext-domain|tail -n 1| cut -f2 -d'"')
+
+for i in po/*.po; do
+    msgmerge -N $i po/messages.pot > tmp.po
+    mv tmp.po $i
+    langpo=$(basename $i .po)
+    mkdir -p locale/${langpo}/LC_MESSAGES
+    msgfmt po/${langpo}.po -o locale/${langpo}/LC_MESSAGES/${GETTEXTID}.mo
+done
+
 DIR=$(basename $(pwd))
 echo $DIR
 

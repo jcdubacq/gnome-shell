@@ -758,7 +758,19 @@ const FrenchRepublicanCalendarTopMenu = new Lang.Class({
             this.isotext = this.isotext + '0';
         }
         this.isotext = this.isotext + offgd[2];
-        this.offsettext = '<b>'+_("Offset")+'</b> '+(off != 0 ? (off) : '0');
+        let offstring = '';
+        if (off == 0) {
+            offstring = '<b>'+_("Today")+'</b>';
+        } else if (off == 1) {
+            offstring = '<b>'+_("Tomorrow")+'</b>';
+        } else if (off == -1) {
+            offstring = '<b>'+_("Yesterday")+'</b>';
+        } else if (off > 0) {
+            offstring = _("In <b>{1}</b> days").replace("{1}",off);
+        } else {
+            offstring = _("<b>{1}</b> days ago").replace("{1}",-off);
+        }
+        this.offsettext = offstring;
     },
     _daymonth: function(jrr) {
         let daymonth = (jrr[2]-1)*10+jrr[3];

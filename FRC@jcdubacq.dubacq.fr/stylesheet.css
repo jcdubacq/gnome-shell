@@ -62,16 +62,16 @@
     width: 26px;
     height: 12px;
     border-radius: 4px;
-    background-image: url("resource:///org/gnome/shell/theme/calendar-arrow-left.svg");
+    background-image: url("calendar-arrow-single-left.svg");
 }
 .calendar-change-month-back:rtl {
-    background-image: url("resource:///org/gnome/shell/theme/calendar-arrow-right.svg");
+    background-image: url("calendar-arrow-single-right.svg");
 }
 
 .calendar-change-month-forward {
     width: 26px;
     height: 12px;
     border-radius: 4px;
-    background-image: url("resource:///org/gnome/shell/theme/calendar-arrow-right.svg"); }
+    background-image: url("calendar-arrow-single-right.svg"); }
 .calendar-change-month-forward:rtl {
-    background-image: url("resource:///org/gnome/shell/theme/calendar-arrow-left.svg"); }
+    background-image: url("calendar-arrow-single-left.svg"); }
