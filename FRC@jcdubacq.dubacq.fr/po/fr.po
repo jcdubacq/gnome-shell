@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-09 11:00+0100\n"
+"POT-Creation-Date: 2016-11-09 11:28+0100\n"
 "PO-Revision-Date: 2014-09-11 01:29+0100\n"
 "Last-Translator: Jean-Christophe Dubacq <jcdubacq1@free.fr>\n"
 "Language-Team: French\n"
@@ -47,6 +47,22 @@ msgstr "Jour julien"
 msgid "ISO-8601 date"
 msgstr "Date ISO-8601"
 
-#: extension.js:602
-msgid "Offset"
-msgstr "Décalage"
+#: extension.js:604
+msgid "Today"
+msgstr "Aujourd'hui"
+
+#: extension.js:606
+msgid "Tomorrow"
+msgstr "Demain"
+
+#: extension.js:608
+msgid "Yesterday"
+msgstr "Hier"
+
+#: extension.js:610
+msgid "In <b>{1}</b> days"
+msgstr "Dans <b>{1}</b> jours"
+
+#: extension.js:612
+msgid "<b>{1}</b> days ago"
+msgstr "Il y a <b>{1}</b> jours"
