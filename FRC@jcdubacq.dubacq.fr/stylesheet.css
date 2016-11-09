@@ -23,22 +23,12 @@
 .calendar-change-month-more-back {
     width: 26px;
     height: 12px;
-    background-image: url("calendar-arrow-left.svg");
     border-radius: 4px;
+    background-image: url("calendar-arrow-left.svg");
 }
-
 .calendar-change-month-more-back:rtl {
     background-image: url("calendar-arrow-right.svg");
 }
-
-.calendar-change-month-more-back:hover,
-.calendar-change-month-more-back:focus {
-    background-color: #999999;
-}
-.calendar-change-month-more-back:active {
-    background-color: #aaaaaa;
-}
-
 
 .calendar-change-month-more-forward {
     width: 26px;
@@ -46,15 +36,42 @@
     background-image: url("calendar-arrow-right.svg");
     border-radius: 4px;
 }
-
 .calendar-change-month-more-forward:rtl {
     background-image: url("calendar-arrow-left.svg");
 }
 
+.calendar-change-month-forward:focus,
+.calendar-change-month-forward:hover,
 .calendar-change-month-more-forward:hover,
-.calendar-change-month-more-forward:focus {
+.calendar-change-month-more-forward:focus,
+.calendar-change-month-back:focus,
+.calendar-change-month-back:hover,
+.calendar-change-month-more-back:hover,
+.calendar-change-month-more-back:focus {
     background-color: #999999;
 }
+
+.calendar-change-month-back:active,
+.calendar-change-month-more-back:active,
+.calendar-change-month-forward:active,
 .calendar-change-month-more-forward:active {
     background-color: #aaaaaa;
 }
+
+.calendar-change-month-back {
+    width: 26px;
+    height: 12px;
+    border-radius: 4px;
+    background-image: url("calendar-arrow-single-left.svg");
+}
+.calendar-change-month-back:rtl {
+    background-image: url("calendar-arrow-single-right.svg");
+}
+
+.calendar-change-month-forward {
+    width: 26px;
+    height: 12px;
+    border-radius: 4px;
+    background-image: url("calendar-arrow-single-right.svg"); }
+.calendar-change-month-forward:rtl {
+    background-image: url("calendar-arrow-single-left.svg"); }
