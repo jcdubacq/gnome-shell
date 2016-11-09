@@ -12,7 +12,7 @@ This utility displays the current date of the [French Republican Calendar](http:
 
 It also displays (when clicked) details such as the name of the day and the aspect celebrated this day (often a plant or an instrument of labor).
 
-![Version 8 in action](FRC@jcdubacq.dubacq.fr/screenshot.jpg?raw=true "Version 8 in action")
+![Version 8 in action](FRC@jcdubacq.dubacq.fr/screenshot.png?raw=true "Version 8 in action")
 
 
 ## Evolution of the extension :
