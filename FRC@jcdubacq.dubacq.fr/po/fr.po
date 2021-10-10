@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-09 14:21+0100\n"
+"POT-Creation-Date: 2021-10-11 00:09+0200\n"
 "PO-Revision-Date: 2014-09-11 01:29+0100\n"
 "Last-Translator: Jean-Christophe Dubacq <jcdubacq1@free.fr>\n"
 "Language-Team: French\n"
@@ -19,50 +19,50 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: extension.js:495
+#: extension.js:496
 msgid "Previous month"
 msgstr "Mois précédent"
 
-#: extension.js:500
+#: extension.js:501
 msgid "Previous day"
 msgstr "Jour précédent"
 
-#: extension.js:519
+#: extension.js:520
 msgid "Next day"
 msgstr "Jour suivant"
 
-#: extension.js:524
+#: extension.js:525
 msgid "Next month"
 msgstr "Mois suivant"
 
-#: extension.js:588
+#: extension.js:589
 msgid "year"
 msgstr "an"
 
-#: extension.js:592
+#: extension.js:593
 msgid "Julian day"
 msgstr "Jour julien"
 
-#: extension.js:593
+#: extension.js:594
 msgid "ISO-8601 date"
 msgstr "Date ISO-8601"
 
-#: extension.js:604
+#: extension.js:605
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: extension.js:606
+#: extension.js:607
 msgid "Tomorrow"
 msgstr "Demain"
 
-#: extension.js:608
+#: extension.js:609
 msgid "Yesterday"
 msgstr "Hier"
 
-#: extension.js:610
+#: extension.js:611
 msgid "In <b>{1}</b> days"
 msgstr "Dans <b>{1}</b> jours"
 
-#: extension.js:612
+#: extension.js:613
 msgid "<b>{1}</b> days ago"
 msgstr "Il y a <b>{1}</b> jours"
