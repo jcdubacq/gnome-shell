@@ -6,7 +6,8 @@ const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Panel = imports.ui.panel;
 const Main = imports.ui.main;
-const Tweener = imports.ui.tweener;
+//const Tweener = imports.ui.tweener;
+const Tweener = imports.tweener.tweener;
 const Mainloop = imports.mainloop;
 
 const ExtensionUtils = imports.misc.extensionUtils;
