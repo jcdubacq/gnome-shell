@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-11 00:09+0200\n"
+"POT-Creation-Date: 2021-10-11 10:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,50 +17,50 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:496
+#: extension.js:498
 msgid "Previous month"
 msgstr ""
 
-#: extension.js:501
+#: extension.js:503
 msgid "Previous day"
 msgstr ""
 
-#: extension.js:520
+#: extension.js:522
 msgid "Next day"
 msgstr ""
 
-#: extension.js:525
+#: extension.js:527
 msgid "Next month"
 msgstr ""
 
-#: extension.js:589
+#: extension.js:593
 msgid "year"
 msgstr ""
 
-#: extension.js:593
+#: extension.js:597
 msgid "Julian day"
 msgstr ""
 
-#: extension.js:594
+#: extension.js:598
 msgid "ISO-8601 date"
 msgstr ""
 
-#: extension.js:605
+#: extension.js:609
 msgid "Today"
 msgstr ""
 
-#: extension.js:607
+#: extension.js:611
 msgid "Tomorrow"
 msgstr ""
 
-#: extension.js:609
+#: extension.js:613
 msgid "Yesterday"
 msgstr ""
 
-#: extension.js:611
+#: extension.js:615
 msgid "In <b>{1}</b> days"
 msgstr ""
 
-#: extension.js:613
+#: extension.js:617
 msgid "<b>{1}</b> days ago"
 msgstr ""

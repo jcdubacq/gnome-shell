@@ -21,4 +21,4 @@ done
 
 basename=$(basename $(pwd))
 
-zip  --exclude=*.git* --exclude=*.DS_Store* -r ../$basename.zip .
+zip  --exclude=*.po --exclude=*.pot --exclude=screenshot.png --exclude=*.git* --exclude=*.DS_Store* -r ../$basename.zip .
